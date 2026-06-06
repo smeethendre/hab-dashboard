@@ -128,6 +128,8 @@ export function AuthProvider({
 
     console.log('CALLING signInWithRedirect');
 
+    
+
     await signInWithRedirect(auth, provider);
 
     console.log('REDIRECT INITIATED');
