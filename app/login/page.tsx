@@ -3,7 +3,7 @@ import React from 'react';
 import { useAuth } from '@/lib/auth';
 
 export default function LoginPage() {
-  const { signInWithGoogle, error, loading } = useAuth();
+  const { signInWithMicrosoft, error, loading } = useAuth();
 
   return (
     <div style={{
@@ -75,7 +75,7 @@ export default function LoginPage() {
         {/* Google Sign In Button */}
         <button
           className="login-btn"
-          onClick={signInWithGoogle}
+          onClick={signInWithMicrosoft}
           disabled={loading}
           style={{
             width: '100%', padding: '14px 24px',

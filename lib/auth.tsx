@@ -92,25 +92,21 @@ export function AuthProvider({
   }, []);
 
   const signInWithMicrosoft = async () => {
-    try {
-      setError(null);
+  try {
+    setError(null);
 
-      console.log('STARTING MICROSOFT REDIRECT LOGIN');
+    console.log('STARTING MICROSOFT REDIRECT LOGIN');
 
-      const provider = new OAuthProvider('microsoft.com');
+    const provider = new OAuthProvider('microsoft.com');
 
-      provider.setCustomParameters({
-        tenant: '405ddc34-d660-46e5-b52d-bfd0be156bb5',
-      });
+    await signInWithRedirect(auth, provider);
+  } catch (err: any) {
+    console.error('LOGIN ERROR');
+    console.error(err);
 
-      await signInWithRedirect(auth, provider);
-    } catch (err: any) {
-      console.error('LOGIN ERROR');
-      console.error(err);
-
-      setError(err?.message || 'Sign-in failed');
-    }
-  };
+    setError(err?.message || 'Sign-in failed');
+  }
+};
 
   const logout = async () => {
     await signOut(auth);
