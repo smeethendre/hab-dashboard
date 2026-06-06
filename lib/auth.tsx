@@ -84,6 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = '/';
   };
 
+  
+
   return (
     <AuthContext.Provider value={{ user, loading, error, signInWithMicrosoft, logout }}>
       {children}
