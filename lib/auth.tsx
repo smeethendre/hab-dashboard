@@ -55,61 +55,18 @@ export function AuthProvider({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-  console.log('========== AUTH INITIALIZING ==========');
-
-  console.log('HOSTNAME:', window.location.hostname);
-  console.log('URL:', window.location.href);
-
-  console.log('FIREBASE CONFIG');
-  console.log('AUTH DOMAIN:', process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN);
-  console.log('PROJECT ID:', process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID);
-
-  getRedirectResult(auth)
-    .then((result) => {
-      console.log('========== REDIRECT RESULT ==========');
-      console.log(result);
-
-      if (result?.user) {
-        console.log('REDIRECT LOGIN SUCCESS');
-        console.log('UID:', result.user.uid);
-        console.log('EMAIL:', result.user.email);
-      } else {
-        console.log('REDIRECT RESULT IS NULL');
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+      if (u) {
+        const path = window.location.pathname;
+        if (path === '/' || path === '/login' || !path.startsWith('/dashboard')) {
+          window.location.href = '/dashboard';
+        }
       }
-    })
-    .catch((err) => {
-      console.error('========== REDIRECT ERROR ==========');
-      console.error(err);
-      console.error('CODE:', err?.code);
-      console.error('MESSAGE:', err?.message);
     });
-
-  const unsub = onAuthStateChanged(auth, (u) => {
-    console.log('========== AUTH STATE CHANGED ==========');
-    console.log(u);
-
-    setUser(u);
-    setLoading(false);
-
-    if (u) {
-      console.log('USER LOGGED IN');
-      console.log('UID:', u.uid);
-      console.log('EMAIL:', u.email);
-
-      if (
-        window.location.pathname === '/' ||
-        window.location.pathname === '/login'
-      ) {
-        console.log('REDIRECTING TO DASHBOARD');
-        window.location.href = '/dashboard';
-      }
-    } else {
-      console.log('NO AUTHENTICATED USER');
-    }
-  });
-
-  return () => unsub();
-}, []);
+    return () => unsub();
+  }, []);
 
   const signInWithMicrosoft = async () => {
   try {
@@ -128,7 +85,7 @@ export function AuthProvider({
 
     console.log('CALLING signInWithRedirect');
 
-    
+
 
     await signInWithRedirect(auth, provider);
 
