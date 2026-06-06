@@ -11,19 +11,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, loading]);
 
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'var(--bg-base)', color: 'var(--accent)',
-        fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.15em',
-      }}>
-        AUTHENTICATING...
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)', color: 'var(--accent)', fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.15em' }}>
+      AUTHENTICATING...
+    </div>
+  );
 
   if (!user) return null;
-
   return <>{children}</>;
 }
