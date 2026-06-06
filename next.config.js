@@ -4,9 +4,7 @@ const nextConfig = {
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
+        fs: false, net: false, tls: false,
       };
     }
     config.resolve.alias = {
@@ -14,6 +12,16 @@ const nextConfig = {
       'faye-websocket': false,
     };
     return config;
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
+        ],
+      },
+    ];
   },
 };
 

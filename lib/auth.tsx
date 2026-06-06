@@ -2,8 +2,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { initializeApp, getApps } from 'firebase/app';
 import {
-  getAuth, OAuthProvider, signInWithRedirect,
-  getRedirectResult, signOut, onAuthStateChanged, type User
+  getAuth, OAuthProvider, signInWithPopup,
+  signOut, onAuthStateChanged, type User
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -39,9 +39,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);        // accept any user from the tenant
+      setUser(u);
       setLoading(false);
-      if (u) {
+      if (u && typeof window !== 'undefined') {
         const path = window.location.pathname;
         if (!path.startsWith('/dashboard')) {
           window.location.replace('/dashboard');
@@ -58,10 +58,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       provider.setCustomParameters({
         tenant: '405ddc34-d660-46e5-b52d-bfd0be156bb5',
       });
-      await signInWithRedirect(auth, provider);
+      // Use popup instead of redirect — avoids loop issue
+      await signInWithPopup(auth, provider);
     } catch (err: any) {
-      setError('Sign-in failed. Please try again.');
-      console.error(err);
+      if (err.code !== 'auth/popup-closed-by-user') {
+        setError('Sign-in failed. Please try again.');
+        console.error(err);
+      }
     }
   };
 
