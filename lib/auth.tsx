@@ -38,30 +38,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError]     = useState<string | null>(null);
 
   useEffect(() => {
-    // Handle redirect result when returning from Microsoft login
+    let handled = false;
+
+    // Step 1: Check redirect result first
     getRedirectResult(auth)
       .then((result) => {
         if (result?.user) {
+          handled = true;
           setUser(result.user);
-          window.location.href = '/dashboard';
+          setLoading(false);
+          window.location.replace('/dashboard');
         }
       })
       .catch((err) => {
+        console.error('Redirect result error:', err);
         if (err.code !== 'auth/no-redirect-operation-pending') {
           setError('Sign-in failed. Please try again.');
-          console.error(err);
+        }
+      })
+      .finally(() => {
+        if (!handled) {
+          // Step 2: Check if already logged in
+          const unsub = onAuthStateChanged(auth, (u) => {
+            setUser(u);
+            setLoading(false);
+            if (u) {
+              const path = window.location.pathname;
+              if (!path.startsWith('/dashboard')) {
+                window.location.replace('/dashboard');
+              }
+            }
+          });
+          return () => unsub();
         }
       });
-
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
-      if (u && (window.location.pathname === '/' || window.location.pathname === '/login')) {
-        window.location.href = '/dashboard';
-      }
-    });
-
-    return () => unsub();
   }, []);
 
   const signInWithMicrosoft = async () => {
@@ -81,10 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     await signOut(auth);
     setUser(null);
-    window.location.href = '/';
+    window.location.replace('/');
   };
-
-  
 
   return (
     <AuthContext.Provider value={{ user, loading, error, signInWithMicrosoft, logout }}>
