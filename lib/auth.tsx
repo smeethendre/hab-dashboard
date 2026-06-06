@@ -2,8 +2,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { initializeApp, getApps } from 'firebase/app';
 import {
-  getAuth, OAuthProvider, signInWithPopup,
-  signOut, onAuthStateChanged, type User
+  getAuth, signInWithEmailAndPassword, signOut,
+  onAuthStateChanged, type User
 } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -23,13 +23,13 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signInWithMicrosoft: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null, loading: true, error: null,
-  signInWithMicrosoft: async () => {}, logout: async () => {},
+  signIn: async () => {}, logout: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -42,8 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(u);
       setLoading(false);
       if (u && typeof window !== 'undefined') {
-        const path = window.location.pathname;
-        if (!path.startsWith('/dashboard')) {
+        if (!window.location.pathname.startsWith('/dashboard')) {
           window.location.replace('/dashboard');
         }
       }
@@ -51,19 +50,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsub();
   }, []);
 
-  const signInWithMicrosoft = async () => {
+  const signIn = async (email: string, password: string) => {
     setError(null);
     try {
-      const provider = new OAuthProvider('microsoft.com');
-      provider.setCustomParameters({
-        tenant: '405ddc34-d660-46e5-b52d-bfd0be156bb5',
-      });
-      // Use popup instead of redirect — avoids loop issue
-      await signInWithPopup(auth, provider);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
-      if (err.code !== 'auth/popup-closed-by-user') {
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+        setError('Incorrect email or password.');
+      } else if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many attempts. Try again later.');
+      } else {
         setError('Sign-in failed. Please try again.');
-        console.error(err);
       }
     }
   };
@@ -75,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, signInWithMicrosoft, logout }}>
+    <AuthContext.Provider value={{ user, loading, error, signIn, logout }}>
       {children}
     </AuthContext.Provider>
   );
