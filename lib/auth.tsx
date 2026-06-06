@@ -119,6 +119,13 @@ export function AuthProvider({
 
     const provider = new OAuthProvider('microsoft.com');
 
+    provider.setCustomParameters({
+      tenant: '405ddc34-d660-46e5-b52d-bfd0be156bb5',
+    });
+
+    console.log('MICROSOFT PROVIDER CREATED');
+    console.log('TENANT: 405ddc34-d660-46e5-b52d-bfd0be156bb5');
+
     console.log('CALLING signInWithRedirect');
 
     await signInWithRedirect(auth, provider);
@@ -127,6 +134,8 @@ export function AuthProvider({
   } catch (err: any) {
     console.error('========== LOGIN ERROR ==========');
     console.error(err);
+    console.error('CODE:', err?.code);
+    console.error('MESSAGE:', err?.message);
 
     setError(err?.message || 'Sign-in failed');
   }
