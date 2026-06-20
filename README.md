@@ -1,4 +1,4 @@
-# 🎈 HAB Telemetry Dashboard
+# High Altitude Balloon Satellite
 
 > A fault-tolerant telemetry acquisition and visualization platform built for High Altitude Balloon (HAB) missions — engineered to keep working when the signal doesn't.
 
