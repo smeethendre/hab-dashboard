@@ -1,207 +1,265 @@
-# 🎈 HAB Telemetry Dashboard
+HAB Telemetry Dashboard
 
-A real-time High Altitude Balloon telemetry dashboard built with **Next.js**, **Firebase Realtime Database**, and **Firebase PostgreSQL (Cloud SQL)**.
+A fault-tolerant telemetry acquisition and visualization platform built for High Altitude Balloon (HAB) missions. The system provides reliable telemetry collection, local buffering, automatic synchronization, secure access control, and real-time mission monitoring.
 
----
+Live Deployment:
+https://hab-dashboard-theta.vercel.app/dashboard
 
-## Architecture
+Access is restricted to authenticated and authorized team members.
 
-```
-HAB Balloon ──RF/LoRa──► Ground Station ──upload──► Firebase Realtime DB
-                                                              │
-                                              onValueCreated  │ Cloud Function
-                                                              ▼
-                                                    Firebase PostgreSQL
-                                                              │
-                                              Next.js Dashboard (local)
-                                              ├── Realtime listener (live)
-                                              └── API route query (history)
-```
+System Overview
 
----
+The platform consists of:
 
-## Quick Start
+STM32-based flight computer
+Ground station telemetry receiver
+Automatic serial connection detection
+Local SQLite buffering
+Offline-first synchronization engine
+Firebase Realtime Database
+PostgreSQL historical storage
+Cloud Functions
+Next.js dashboard with live updates
+Microsoft Azure AD authentication
+Architecture
+HAB Payload (STM32)
+        │
+        │ RF / LoRa
+        ▼
+Ground Station Software
+        │
+        ├── Auto COM Port Detection
+        ├── SQLite Packet Buffer
+        ├── Offline Queue System
+        └── Automatic Retry Engine
+        │
+        ▼
+Firebase Realtime Database
+        │
+        ├── Live Dashboard Updates
+        │
+        └── Cloud Function
+                │
+                ▼
+          PostgreSQL Database
+                │
+                ▼
+        Next.js Dashboard
+                │
+                ▼
+       Azure AD Authentication
+Key Features
+Real-Time Telemetry Monitoring
 
-### 1. Clone & Install
+Monitor:
 
-```bash
-cd hab-dashboard
-npm install
-```
+Altitude
+Temperature
+Pressure
+Humidity
+UV Index
+Magnetic Field
+GPS Position
+Battery Percentage
+RSSI Signal Strength
+IMU Data (Gyroscope + Accelerometer)
+Ground Station Software
 
-### 2. Set up Firebase
+The ground station software automatically handles telemetry acquisition and reliability.
 
-1. Go to [Firebase Console](https://console.firebase.google.com) → Create project
-2. Enable **Realtime Database** (Start in test mode)
-3. Go to **Project Settings → Your Apps** → Add a Web App → copy the config
+Automatic STM32 Detection
+Detects serial COM ports automatically.
+No manual port configuration required.
+Recovers seamlessly after device reconnection.
+Local SQLite Persistence
 
-### 3. Set up Firebase PostgreSQL (Cloud SQL)
+Incoming telemetry packets are first stored locally:
 
-1. In Firebase Console → **Build → Cloud SQL**
-2. Create a **PostgreSQL** instance
-3. Create a database called `hab_telemetry`
-4. Note the connection details
+Prevents packet loss.
+Allows operation without internet.
+Provides local mission backup.
+Offline-First Synchronization
 
-### 4. Configure environment variables
+Designed for unreliable field conditions.
 
-```bash
-cp .env.local.example .env.local
-# Edit .env.local and fill in your Firebase config + DB credentials
-```
+When internet connectivity is unavailable:
 
-### 5. Run the dashboard
+Incoming Packet
+      ↓
+SQLite Queue
+      ↓
+Network Restored
+      ↓
+Automatic Retry
+      ↓
+Firebase Realtime Database
 
-```bash
-npm run dev
-# Open http://localhost:3000
-```
+This ensures telemetry data is never lost during high-altitude missions.
 
-### 6. Test with the simulator (no real hardware needed)
+Background Execution
 
-```bash
-# Edit simulator.js and paste your Firebase config at the top
-node simulator.js
-```
+Ground station processes are maintained using:
 
-You'll see packets streaming in on the dashboard immediately!
+Windows Task Scheduler
+Automatic startup
+Recovery after reboot
+Minimal operator intervention
+Dashboard Features
+Live Telemetry Dashboard
 
----
+Built with:
 
-## Deploy the Cloud Function (saves data to PostgreSQL automatically)
+Next.js 15
+React
+TypeScript
+Tailwind CSS
+Recharts
+React Leaflet
 
-```bash
-# Install Firebase CLI if needed
-npm install -g firebase-tools
-firebase login
+Provides:
 
-# Deploy the function
-cd functions
-npm install
-cd ..
-firebase deploy --only functions
-```
+Header Panel
 
-The function `onNewTelemetry` will fire automatically every time your friend pushes a packet to `/telemetry` in Firebase Realtime DB, and it will insert that row into PostgreSQL.
+Displays:
 
----
+HAB ID
+Mission Time
+Packet Number
+RSSI
+Status Flag
+Camera Status
+Sensor Cards
 
-## How your friend uploads data
+Live values for:
 
-Your friend's ground station should push packets to Firebase Realtime DB like this:
+Altitude
+Temperature
+Pressure
+Humidity
+Battery
+UV Index
+Magnetic Field
+Flight Map
+OpenStreetMap integration
+Real-time GPS position
+Flight trajectory visualization
+IMU Visualization
 
-```javascript
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, push } from 'firebase/database';
+Displays:
 
-const app = initializeApp(firebaseConfig); // same config
-const db  = getDatabase(app);
+Gyroscope X/Y/Z
+Accelerometer X/Y/Z
+Charts
+Environment
+Temperature
+Pressure
+Humidity
+UV Index
+Altitude
+IMU
+Gyroscope
+Accelerometer
+Magnetic Field
+Signal
+RSSI
+Battery
+Packet Log
 
-// Call this whenever a new packet arrives from the balloon
-async function uploadPacket(packet) {
-  await push(ref(db, 'telemetry'), {
-    HAB_ID:         'HAB-01',
-    MISSION_TIME:   '00:12:34',
-    PACKET_NO:      42,
-    TEMPERATURE:    -23.5,
-    PRESSURE:       512.3,
-    HUMIDITY:       34.2,
-    UV_INDEX:       7.1,
-    MAGNETIC_FIELD: 44.8,
-    LATITUDE:       19.0760,
-    LONGITUDE:      72.8777,
-    ALTITUDE:       12500,
-    TIMESTAMP:      new Date().toISOString(),
-    BATTERY_PERCENT: 78,
-    GYRO_X:         1.23,
-    GYRO_Y:         -0.45,
-    GYRO_Z:         0.12,
-    ACCEL_X:        0.03,
-    ACCEL_Y:        -0.01,
-    ACCEL_Z:        9.81,
-    CAMERA_STATUS:  'ON',
-    STATUS_FLAG:    'OK',
-    RSSI:           -72,
-  });
-}
-```
+View recently received telemetry packets.
 
----
+Authentication & Security
 
-## Project Structure
+Dashboard access is secured using:
 
-```
-hab-dashboard/
-├── app/
-│   ├── layout.tsx              # Root layout + Google Fonts
-│   ├── globals.css             # Dark space aesthetic theme
-│   ├── page.tsx                # Redirects → /dashboard
-│   ├── dashboard/
-│   │   └── page.tsx            # Main dashboard UI
-│   └── api/
-│       └── telemetry/
-│           └── route.ts        # GET/POST API for PostgreSQL
-├── components/
-│   ├── Header.tsx              # Mission status bar
-│   ├── StatCard.tsx            # Individual sensor value card
-│   ├── charts/
-│   │   └── TelemetryChart.tsx  # Recharts line chart wrapper
-│   ├── gauges/
-│   │   ├── CircularGauge.tsx   # SVG circular gauge
-│   │   └── IMUDisplay.tsx      # Gyro/accel bar display
-│   └── map/
-│       └── GPSMap.tsx          # Leaflet flight path map
-├── lib/
-│   ├── firebase.ts             # Firebase client setup
-│   ├── db.ts                   # PostgreSQL pool + helpers
-│   ├── types.ts                # TelemetryPacket TypeScript types
-│   └── useTelemetry.ts         # React hook for realtime data
-├── functions/
-│   ├── index.js                # Cloud Function: RTDB → PostgreSQL
-│   └── package.json
-├── simulator.js                # Test data generator (no hardware needed)
-├── firebase.json               # Firebase project config
-├── database.rules.json         # RTDB security rules
-├── .env.local.example          # Environment variable template
-└── README.md
-```
+Microsoft Azure Active Directory
 
----
+Features:
 
-## Dashboard Features
+College-domain restricted login
+Authorized team-member access only
+Identity management through Azure AD
+Secure session handling
+Database Architecture
+Realtime Layer
 
-| Section | What it shows |
-|---|---|
-| **Header bar** | HAB ID, mission time, packet #, status flag, RSSI, camera status |
-| **Stat cards** | Live values: altitude, temperature, pressure, humidity, UV, magnetic field, battery, RSSI |
-| **Flight map** | Live GPS path on OpenStreetMap (blue dot = balloon position) |
-| **Gauges** | Circular gauges for humidity, pressure, battery |
-| **IMU panel** | Gyro X/Y/Z and Accel X/Y/Z bidirectional bar display |
-| **Charts** | Environment tab (temp, altitude, pressure, humidity/UV) · IMU tab (gyro, accel, mag) · Signal tab (RSSI, battery) |
-| **Packet log** | Last 10 raw packets in a table |
+Firebase Realtime Database
 
----
+Used for:
 
-## Alerts
+Live telemetry streaming
+Low-latency updates
+Dashboard subscriptions
+Historical Layer
 
-The dashboard automatically highlights:
-- 🔴 **Battery < 15%** — red glow on stat card
-- 🔴 **UV Index > 10** — red alert
-- 🔴 **RSSI < -90 dBm** — poor signal warning
-- 🟡 **RSSI -70 to -90 dBm** — marginal signal
+PostgreSQL
 
----
+Stores:
 
-## Troubleshooting
+Historical telemetry packets
+Long-term mission data
+Analytics and chart history
+Cloud Functions
 
-**Dashboard shows "AWAITING TELEMETRY SIGNAL..."**
-→ Check your Firebase config in `.env.local`
-→ Make sure Realtime Database is enabled
-→ Run `node simulator.js` to send test data
+Automatically move telemetry packets from:
 
-**Map not loading**
-→ Leaflet is client-side only — this is normal during SSR
-→ The map loads after hydration
+Firebase RTDB
+        ↓
+Cloud Function
+        ↓
+PostgreSQL
+Reliability Features
 
-**PostgreSQL connection error**
-→ For local dev, set `DB_HOST=localhost` and ensure PostgreSQL is running
-→ For production, use Cloud SQL socket path
+✅ Automatic STM32 serial detection
+
+✅ Local SQLite packet buffering
+
+✅ Offline-first queue architecture
+
+✅ Automatic upload retry mechanism
+
+✅ Reboot recovery using Windows Task Scheduler
+
+✅ Realtime dashboard updates
+
+✅ Historical PostgreSQL storage
+
+✅ Secure Azure AD authentication
+
+✅ Packet loss prevention
+
+Tech Stack
+Frontend
+Next.js 15
+React
+TypeScript
+Tailwind CSS
+Recharts
+React Leaflet
+Backend
+Firebase Realtime Database
+Firebase Cloud Functions
+PostgreSQL
+SQLite
+Next.js API Routes
+Authentication
+Microsoft Azure AD
+Hardware Integration
+STM32
+Serial Communication
+COM Port Auto Detection
+Deployment
+Vercel
+Firebase
+Future Improvements
+Multi-HAB support
+Mission replay mode
+CSV export
+Excel export
+Predictive landing estimation
+AI anomaly detection
+Weather overlay
+Mission event timeline
+Remote command uplink
+Project Goal
+
+To provide a robust, fault-tolerant telemetry infrastructure for High Altitude Balloon missions, ensuring reliable packet acquisition, secure access, and uninterrupted telemetry visualization even under unstable connectivity conditions.
