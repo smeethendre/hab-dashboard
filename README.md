@@ -1,11 +1,6 @@
-HAB Telemetry Dashboard
+Satellite Telemtry
 
 A fault-tolerant telemetry acquisition and visualization platform built for High Altitude Balloon (HAB) missions. The system provides reliable telemetry collection, local buffering, automatic synchronization, secure access control, and real-time mission monitoring.
-
-Live Deployment:
-https://hab-dashboard-theta.vercel.app/dashboard
-
-Access is restricted to authenticated and authorized team members.
 
 System Overview
 
@@ -50,6 +45,108 @@ Firebase Realtime Database
        Azure AD Authentication
 Key Features
 Real-Time Telemetry Monitoring
+
+
+Sample Telemetry Packet
+{
+  "HAB_ID": "HAB-01",
+  "MISSION_TIME": "00:12:34",
+  "PACKET_NO": 42,
+  "TEMPERATURE": -23.5,
+  "PRESSURE": 512.3,
+  "HUMIDITY": 34.2,
+  "UV_INDEX": 7.1,
+  "MAGNETIC_FIELD": 44.8,
+  "LATITUDE": 19.0760,
+  "LONGITUDE": 72.8777,
+  "ALTITUDE": 12500,
+  "TIMESTAMP": "2026-06-20T12:00:00Z",
+  "BATTERY_PERCENT": 78,
+  "GYRO_X": 1.23,
+  "GYRO_Y": -0.45,
+  "GYRO_Z": 0.12,
+  "ACCEL_X": 0.03,
+  "ACCEL_Y": -0.01,
+  "ACCEL_Z": 9.81,
+  "CAMERA_STATUS": "ON",
+  "STATUS_FLAG": "OK",
+  "RSSI": -72
+}
+Local Setup
+Clone Repository
+git clone <repo-url>
+cd hab-dashboard
+Install Dependencies
+npm install
+Configure Environment Variables
+
+Create:
+
+.env.local
+
+Example:
+
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+DATABASE_URL=
+Start Development Server
+npm run dev
+
+Open:
+
+http://localhost:3000
+Simulator
+
+Generate telemetry packets without hardware:
+
+node simulator.js
+
+Telemetry will instantly appear on the dashboard.
+
+Deployment
+Frontend
+
+Hosted on Vercel
+
+vercel deploy
+Cloud Functions
+firebase deploy --only functions
+Project Structure
+hab-dashboard
+│
+├── app
+│   ├── dashboard
+│   ├── api
+│   ├── layout.tsx
+│   └── page.tsx
+│
+├── components
+│   ├── charts
+│   ├── gauges
+│   ├── map
+│   ├── Header.tsx
+│   └── StatCard.tsx
+│
+├── lib
+│   ├── firebase.ts
+│   ├── db.ts
+│   ├── types.ts
+│   └── useTelemetry.ts
+│
+├── functions
+│   └── index.js
+│
+├── simulator.js
+├── firebase.json
+├── database.rules.json
+├── .env.local
+└── README.md
 
 Monitor:
 
@@ -261,5 +358,11 @@ Weather overlay
 Mission event timeline
 Remote command uplink
 Project Goal
+
+
+Live Deployment:
+https://hab-dashboard-theta.vercel.app/dashboard
+
+Access is restricted to authenticated and authorized team members.
 
 To provide a robust, fault-tolerant telemetry infrastructure for High Altitude Balloon missions, ensuring reliable packet acquisition, secure access, and uninterrupted telemetry visualization even under unstable connectivity conditions.
